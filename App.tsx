@@ -7,7 +7,7 @@ import Profile from './components/Profile';
 import Reports from './components/Reports';
 import VulnerabilityMap from './components/VulnerabilityMap';
 import { BuildingParams, AnalysisResult, ViewMode } from './types';
-import { analyzeBuildingStructure } from './services/geminiService';
+import { analyzeBuildingStructure } from './services/analysisService';
 
 type AppStep = 'landing' | 'onboarding' | 'app';
 

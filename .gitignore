@@ -12,6 +12,31 @@ dist
 dist-ssr
 *.local
 
+# Python / virtual environments
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.pytest_cache/
+
+# Local conda/venv folders (do not commit)
+hackenv/
+.venv/
+venv/
+env/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

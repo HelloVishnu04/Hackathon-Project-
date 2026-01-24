@@ -28,7 +28,7 @@ import {
 } from 'recharts';
 import { jsPDF } from 'jspdf';
 import { AnalysisResult, BuildingParams, RetrofitOption, SensorData, ViewMode } from '../types';
-import { analyzeBuildingStructure } from '../services/geminiService';
+import { analyzeBuildingStructure } from '../services/analysisService';
 
 interface DashboardProps {
   buildingParams: BuildingParams;
