@@ -1,0 +1,5 @@
+{
+  "name": "Structura AI - Smart Retrofit & Safety Advisor",
+  "description": "An interactive 3D engineering dashboard powered by Gemini AI to analyze building structural integrity, visualize retrofitting solutions, and manage emergency response plans.",
+  "requestFramePermissions": []
+}
