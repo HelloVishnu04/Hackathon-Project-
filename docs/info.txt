@@ -1,0 +1,139 @@
+============================================================
+Structura AI – Smart Retrofit & Safety Advisor (Project Guide)
+============================================================
+
+OVERVIEW
+--------
+Structura AI is a building retrofit intelligence platform built to
+streamline seismic risk assessments for existing structures. The
+system blends:
+
+1. An immersive 3D visualization layer (React Three Fiber) where users
+   can orbit around the building, inspect floor-by-floor risk heatmaps,
+   and preview retrofit overlays.
+2. A FastAPI backend (Python + Torch) that simulates engineering
+   heuristics to produce vulnerability scores, identify potential
+   failure modes (e.g., soft-story, column shear), and rank retrofit
+   solutions by cost and ROI.
+
+The target audience includes structural engineers, facility managers,
+municipal emergency planners, and retrofit consultants. The core
+objective is to support rapid decision-making under seismic hazard
+constraints—highlighting deficiencies, proposing tailored retrofit
+strategies, and enabling proactive maintenance planning. Outcomes from
+Structura AI can feed into compliance submissions, funding pitches, or
+disaster preparedness drills.
+
+CORE CAPABILITIES
+-----------------
+- **3D Building Viewer:** Orbit, zoom, and inspect a multi-story
+  structure with heatmaps, soft-story indicators, evacuation overlays,
+  and sensor simulations.
+- **AI-Driven Diagnostics:** The backend evaluates building
+  parameters—year, typology, materials, floor count, seismic zone—and
+  returns vulnerability scores, critical zones, and retrofit
+  recommendations.
+- **Dashboards & Reports:** Switch between dashboard metrics,
+  maintenance planning tools, emergency response views, and printable
+  reports.
+- **Customization Ready:** Blueprint parsing, TensorFlow detection, and
+  automated retrofit placement are planned for Phase B; the current
+  build includes stubs and components that can ingest those results.
+
+ARCHITECTURE
+------------
+1. **Frontend (Vite + React 19):**
+   - `App.tsx` orchestrates onboarding, dashboard, reports, and
+     vulnerability views.
+   - `components/3d/BuildingViewer.tsx` renders the interactive model
+     with sensor and evacuation modes.
+   - `components/Dashboard.tsx`, `Profile.tsx`, `Reports.tsx`, and
+     `VulnerabilityMap.tsx` provide data panels, reports, and charts.
+   - `services/analysisService.ts` wraps the `/analyze` API call to the
+     backend and falls back to a local simulation if the backend is
+     offline.
+
+2. **Backend (FastAPI + Torch):**
+   - `backend/server.py` exposes `/analyze`, validates input via
+     Pydantic models, and feeds data to `StructuralAnalyzer`.
+   - `backend/model.py` emulates a neural network (PyTorch) with
+     heuristics tailored to Indian structural codes (IS 1893, IS 15988).
+   - Output includes vulnerability score, critical zones, and retrofit
+     suggestions with cost and ROI estimates.
+
+3. **Shared Contracts:**
+   - `types.ts` defines TypeScript interfaces for building parameters
+     and analysis results, ensuring frontend-backend alignment.
+
+SETUP & STARTUP
+---------------
+1. **Install Node.js dependencies**
+     npm install
+
+2. **Install Python dependencies**
+     pip install -r backend/requirements.txt
+
+   (Optional) Use Conda:
+     conda create -n structura python=3.11
+     conda activate structura
+
+3. **Run the backend**
+     python backend/server.py
+   - Starts FastAPI on http://127.0.0.1:8000
+
+4. **Run the frontend**
+     npm run dev
+   - Vite serves the app on http://127.0.0.1:5173/
+
+5. **Open the browser UI**
+   - Configure building parameters via the dashboard.
+   - Click “Run Analysis” to call `/analyze` and populate data panels
+     and 3D overlays.
+
+TYPICAL WORKFLOW
+----------------
+1. Launch both backend and frontend servers.
+2. Use onboarding/profile forms to enter building details (year,
+   typology, floors, seismic zone, etc.).
+3. Trigger an analysis, review the vulnerability score, and inspect
+   critical zones in 3D.
+4. Activate retrofits or emergency mode to visualize remediation
+   effects.
+5. Export a snapshot or report for stakeholder communication.
+
+IMPORTANT FILES
+---------------
+- `App.tsx` – Main application flow.
+- `components/3d/BuildingViewer.tsx` – 3D scene logic.
+- `components/Dashboard.tsx` – Primary analytics dashboard.
+- `components/VulnerabilityMap.tsx` – Charts for risk distribution.
+- `backend/model.py` – Risk scoring heuristics and retrofit recommender.
+- `services/analysisService.ts` – API client for `/analyze`.
+
+TROUBLESHOOTING
+---------------
+- **Blank screen:** Ensure both servers are running; reload the browser
+  and inspect console/network tabs for failed requests.
+- **Module errors:** Run `npm install` and `pip install -r
+  backend/requirements.txt` to restore dependencies.
+- **Git issues:** Do not commit `hackenv/`, `node_modules/`, or `.env`
+  files. `.gitignore` already excludes them.
+- **Conda warning (libmamba):** Reinstall `conda-libmamba-solver` or
+  switch solver with `conda config --set solver classic`.
+
+PHASE B ROADMAP (Planned Enhancements)
+-------------------------------------
+- Node-based pipeline UI for blueprint ingestion and retrofit logic.
+- OpenCV-based column detection and TensorFlow soft-story classification.
+- Ghost mesh overlays generated directly from AI coordinates.
+- Real-time IoT integrations, ROI calculators, and automated report
+  generation.
+
+LICENSE & SUPPORT
+-----------------
+- Licensed under MIT (see LICENSE file).
+- For issues or enhancements, open GitHub issues or contact the project
+  maintainer.
+
+This guide summarizes the current Structura AI build and provides the
+steps needed to run, extend, and maintain the project.

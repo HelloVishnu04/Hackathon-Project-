@@ -90,9 +90,6 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboard
           </div>
           
           <div className="flex items-center gap-4">
-             {!onboardingMode && (
-                <span className="hidden md:block text-xs font-mono text-slate-500 bg-slate-800 px-2 py-1 rounded">GEMINI 2.0 FLASH ENABLED</span>
-             )}
              <div 
               onClick={() => !onboardingMode && setView('profile')}
               className={`w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center transition-colors ${!onboardingMode ? 'cursor-pointer hover:border-cyan-400' : ''}`}
