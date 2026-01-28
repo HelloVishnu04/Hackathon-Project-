@@ -56,13 +56,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         
         {/* Left: Info Section */}
         <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-8 md:px-16 lg:px-24">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Layers className="text-white w-7 h-7" />
+          <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <Layers className="text-white w-7 h-7" />
+              </div>
+              <span className="font-bold text-3xl tracking-tight text-white">
+                S.<span className="text-cyan-400">A.F.E</span>
+              </span>
             </div>
-            <span className="font-bold text-3xl tracking-tight text-white">
-              Structura<span className="text-cyan-400">AI</span>
-            </span>
+            <p className="mt-2 text-sm uppercase tracking-[0.3em] text-slate-500 font-semibold">
+              Seismic Assessment &amp; Forecast Engine
+            </p>
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
@@ -127,7 +132,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="engineer@structura.ai"
+                    placeholder="engineer@safe.ai"
                     required
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-slate-200 text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all"
                   />

@@ -45,7 +45,7 @@ const Profile: React.FC<ProfileProps> = ({
     setIsSaving(true);
     // Simulate API/Local Storage latency
     setTimeout(() => {
-        localStorage.setItem('structura_building_params', JSON.stringify(buildingParams));
+        localStorage.setItem('safe_building_params', JSON.stringify(buildingParams));
         setIsSaving(false);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
@@ -107,7 +107,7 @@ const Profile: React.FC<ProfileProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <Mail className="w-4 h-4 text-slate-500" /> a.roy@structura-india.in
+                  <Mail className="w-4 h-4 text-slate-500" /> a.roy@safe-engineering.in
                 </div>
                 <div className="flex items-center gap-3 text-slate-300 text-sm">
                   <Phone className="w-4 h-4 text-slate-500" /> +91 98765 43210

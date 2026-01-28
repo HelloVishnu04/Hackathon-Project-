@@ -1,10 +1,10 @@
 ============================================================
-Structura AI – Smart Retrofit & Safety Advisor (Project Guide)
+S.A.F.E – Seismic Assessment & Forecast Engine (Project Guide)
 ============================================================
 
 OVERVIEW
 --------
-Structura AI is a building retrofit intelligence platform built to
+S.A.F.E is a building retrofit intelligence platform built to
 streamline seismic risk assessments for existing structures. The
 system blends:
 
@@ -21,7 +21,7 @@ municipal emergency planners, and retrofit consultants. The core
 objective is to support rapid decision-making under seismic hazard
 constraints—highlighting deficiencies, proposing tailored retrofit
 strategies, and enabling proactive maintenance planning. Outcomes from
-Structura AI can feed into compliance submissions, funding pitches, or
+S.A.F.E can feed into compliance submissions, funding pitches, or
 disaster preparedness drills.
 
 CORE CAPABILITIES
@@ -135,5 +135,5 @@ LICENSE & SUPPORT
 - For issues or enhancements, open GitHub issues or contact the project
   maintainer.
 
-This guide summarizes the current Structura AI build and provides the
+This guide summarizes the current S.A.F.E build and provides the
 steps needed to run, extend, and maintain the project.

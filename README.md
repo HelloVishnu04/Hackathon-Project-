@@ -1,10 +1,10 @@
-# Structura AI — Smart Retrofit & Safety Advisor
+# S.A.F.E — Seismic Assessment & Forecast Engine
 
-This repository hosts the Structura AI application: a 3D-enabled structural risk dashboard with AI-driven retrofit recommendations. The project consists of a Vite/React frontend and a FastAPI backend that simulates structural analysis without relying on Google Gemini services.
+This repository hosts S.A.F.E (Seismic Assessment & Forecast Engine): a 3D-enabled structural risk dashboard with AI-driven retrofit recommendations. The project consists of a Vite/React frontend and a FastAPI backend that simulates structural analysis without relying on Google Gemini services.
 
 ## Core Idea
 
-Structura AI streamlines seismic retrofit planning for existing buildings. Users specify building parameters, run the backend analysis to generate vulnerability scores, and visualize the results in an immersive 3D scene. The system highlights high-risk areas, proposes retrofit strategies, and provides dashboards for maintenance planning, emergency response, and engineering reports.
+S.A.F.E streamlines seismic retrofit planning for existing buildings. Users specify building parameters, run the backend analysis to generate vulnerability scores, and visualize the results in an immersive 3D scene. The system highlights high-risk areas, proposes retrofit strategies, and provides dashboards for maintenance planning, emergency response, and engineering reports.
 
 ## Project Structure
 

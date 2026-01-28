@@ -1,5 +1,5 @@
 {
-  "name": "structura-ai---smart-retrofit-&-safety-advisor",
+  "name": "safe-seismic-assessment-forecast-engine",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,6 +11,7 @@
   "dependencies": {
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-router-dom": "^6.28.0",
     "@react-three/fiber": "^9.5.0",
     "@react-three/drei": "^10.7.7",
     "three": "^0.182.0",

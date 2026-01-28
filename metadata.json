@@ -1,5 +1,5 @@
 {
-  "name": "Structura AI - Smart Retrofit & Safety Advisor",
-  "description": "An interactive 3D engineering dashboard powered by Gemini AI to analyze building structural integrity, visualize retrofitting solutions, and manage emergency response plans.",
+  "name": "S.A.F.E - Seismic Assessment & Forecast Engine",
+  "description": "An interactive 3D engineering dashboard that analyzes building structural integrity, visualizes retrofit options, and supports emergency planning for seismic resilience.",
   "requestFramePermissions": []
 }

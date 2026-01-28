@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboard
               <Layers className="text-white w-6 h-6" />
             </div>
             <span className="hidden lg:block font-bold text-xl tracking-tight text-white">
-              Structura<span className="text-cyan-400">AI</span>
+              S.<span className="text-cyan-400">A.F.E</span>
             </span>
           </div>
 
