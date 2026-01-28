@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Briefcase, 
-  Award, 
+import React, { useMemo, useState } from 'react';
+
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  Award,
   Settings2,
   Building,
   Save,
@@ -13,59 +13,132 @@ import {
   PlayCircle,
   Loader2,
   Check,
-  ArrowRight
+  ArrowRight,
+  IdCard,
+  Clock,
 } from 'lucide-react';
 import { BuildingParams, BuildingTypology } from '../types';
+import { useAppState } from '../state/AppStateContext';
+import { DEFAULT_PERSONAL_DETAILS, PersonalDetails } from '../types/profile';
 
 interface ProfileProps {
-  buildingParams: BuildingParams;
-  setBuildingParams: (p: BuildingParams) => void;
-  onRunAnalysis: () => Promise<void>;
   onboardingMode?: boolean;
   onCompleteOnboarding?: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ 
-  buildingParams, 
-  setBuildingParams, 
-  onRunAnalysis,
-  onboardingMode = false,
-  onCompleteOnboarding
-}) => {
-  const [isSaving, setIsSaving] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+const Profile: React.FC<ProfileProps> = ({ onboardingMode = false, onCompleteOnboarding }) => {
+  const {
+    buildingParams,
+    setBuildingParams,
+    saveBuildingParams,
+    personalDetails,
+    setPersonalDetails,
+    savePersonalDetails,
+    handleRunAnalysis,
+  } = useAppState();
+
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const handleParamChange = (key: keyof BuildingParams, value: any) => {
     setBuildingParams({ ...buildingParams, [key]: value });
-    setSaveSuccess(false); // Reset save state on change
+    setSaveSuccess(false);
+    setConfigError(null);
   };
 
-  const handleSaveConfig = () => {
-    setIsSaving(true);
-    // Simulate API/Local Storage latency
-    setTimeout(() => {
-        localStorage.setItem('safe_building_params', JSON.stringify(buildingParams));
-        setIsSaving(false);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
-    }, 800);
+  const handleSaveConfig = async () => {
+    setIsSavingConfig(true);
+    setConfigError(null);
+    setSaveSuccess(false);
+
+    try {
+      await saveBuildingParams({ ...buildingParams });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to save building configuration:', error);
+      setConfigError('Failed to save configuration. Please retry.');
+    } finally {
+      setIsSavingConfig(false);
+    }
   };
 
   const handleRunDiagnostics = async () => {
-      setIsAnalyzing(true);
-      await onRunAnalysis();
-      setIsAnalyzing(false);
-      
-      // If in onboarding mode, move to next step after analysis
+    setAnalysisError(null);
+    setIsAnalyzing(true);
+
+    try {
+      await handleRunAnalysis();
+
       if (onboardingMode && onCompleteOnboarding) {
         onCompleteOnboarding();
       }
+    } catch (error) {
+      console.error('Diagnostics failed:', error);
+      setAnalysisError('Unable to run diagnostics right now. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
+
+  const handlePersonalDetailChange = <K extends keyof PersonalDetails>(key: K, value: PersonalDetails[K]) => {
+    setPersonalDetails((prev) => ({ ...prev, [key]: value }));
+    setProfileSaveSuccess(false);
+    setProfileError(null);
+  };
+
+  const handleSavePersonalDetails = async () => {
+    setIsSavingProfile(true);
+    setProfileError(null);
+
+    try {
+      await savePersonalDetails(personalDetails, {
+        onboardingCompleted: onboardingMode ? true : undefined,
+      });
+      setProfileSaveSuccess(true);
+      setTimeout(() => setProfileSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to save personal details:', error);
+      setProfileError('Unable to save personal details. Please retry.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleResetPersonalDetails = async () => {
+    const defaults = { ...DEFAULT_PERSONAL_DETAILS };
+    setPersonalDetails(defaults);
+    setProfileSaveSuccess(false);
+    setProfileError(null);
+
+    try {
+      await savePersonalDetails(defaults);
+      setProfileSaveSuccess(true);
+      setTimeout(() => setProfileSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to reset personal details:', error);
+      setProfileError('Unable to reset profile right now.');
+    }
+  };
+
+  const profileInitials = useMemo(() => (
+    personalDetails.fullName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0]?.toUpperCase())
+      .slice(0, 2)
+      .join('') || 'SA'
+  ), [personalDetails.fullName]);
 
   return (
     <div className="flex flex-col h-full gap-6 p-6 overflow-y-auto">
-      
+
       {/* Onboarding Welcome Message */}
       {onboardingMode && (
         <div className="bg-gradient-to-r from-indigo-900/50 to-slate-900 border border-indigo-500/30 p-6 rounded-xl animate-fade-in">
@@ -84,7 +157,7 @@ const Profile: React.FC<ProfileProps> = ({
             <div className="absolute -bottom-10 left-8">
               <div className="w-24 h-24 rounded-full bg-slate-800 p-1">
                 <div className="w-full h-full rounded-full bg-slate-700 flex items-center justify-center border-2 border-orange-400 overflow-hidden">
-                  <span className="text-2xl font-bold text-slate-300">AR</span>
+                  <span className="text-2xl font-bold text-slate-300">{profileInitials}</span>
                 </div>
               </div>
             </div>
@@ -92,14 +165,20 @@ const Profile: React.FC<ProfileProps> = ({
           <div className="pt-12 px-8 pb-6">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-2xl font-bold text-white">Amit Roy</h1>
+                <h1 className="text-2xl font-bold text-white">{personalDetails.fullName}</h1>
                 <p className="text-orange-400 font-medium flex items-center gap-2">
-                  <Briefcase className="w-4 h-4" /> Chief Structural Consultant
+                  <Briefcase className="w-4 h-4" /> {personalDetails.title || 'Consultant'}
                 </p>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors text-white border border-slate-600">
-                  Edit Consultant Details
+                <button
+                  onClick={() => {
+                    const section = document.getElementById('personal-details-card');
+                    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors text-white border border-slate-600"
+                >
+                  Edit Personal Details
                 </button>
               </div>
             </div>
@@ -107,26 +186,26 @@ const Profile: React.FC<ProfileProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <Mail className="w-4 h-4 text-slate-500" /> a.roy@safe-engineering.in
+                  <Mail className="w-4 h-4 text-slate-500" /> {personalDetails.email || 'Add email in profile'}
                 </div>
                 <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <Phone className="w-4 h-4 text-slate-500" /> +91 98765 43210
+                  <Phone className="w-4 h-4 text-slate-500" /> {personalDetails.phone || 'Add phone number'}
                 </div>
               </div>
               <div className="space-y-3">
                  <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <Award className="w-4 h-4 text-slate-500" /> Reg: IS-SE-2024-8892
+                  <IdCard className="w-4 h-4 text-slate-500" /> Reg: {personalDetails.registrationId || 'Add registration ID'}
                 </div>
                 <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <MapPin className="w-4 h-4 text-slate-500" /> Mumbai, Maharashtra
+                  <MapPin className="w-4 h-4 text-slate-500" /> {personalDetails.location || 'Add base location'}
                 </div>
               </div>
               <div className="space-y-3">
                  <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <Shield className="w-4 h-4 text-slate-500" /> Grade: Senior Level
+                  <Clock className="w-4 h-4 text-slate-500" /> {personalDetails.experience || 'Add experience highlight'}
                 </div>
                  <div className="flex items-center gap-3 text-slate-300 text-sm">
-                  <Building className="w-4 h-4 text-slate-500" /> Roy Structural Consultants
+                  <Building className="w-4 h-4 text-slate-500" /> {personalDetails.organization || 'Add organisation'}
                 </div>
               </div>
             </div>
@@ -135,10 +214,158 @@ const Profile: React.FC<ProfileProps> = ({
       )}
 
       {/* Settings Section */}
-      <div className={`grid grid-cols-1 ${onboardingMode ? 'lg:grid-cols-1 max-w-4xl mx-auto w-full' : 'lg:grid-cols-3'} gap-6`}>
+      <div className={`${onboardingMode ? 'max-w-4xl mx-auto w-full' : ''} flex flex-col gap-6`}>
+        {!onboardingMode && (
+          <div
+            id="personal-details-card"
+            className="bg-slate-800 rounded-xl border border-slate-700 shadow-lg p-6"
+          >
+            <div className="flex items-center justify-between mb-6 border-b border-slate-700 pb-4">
+              <div className="flex items-center gap-2">
+                <IdCard className="w-5 h-5 text-orange-400" />
+                <h2 className="text-lg font-semibold text-white">Personal Details</h2>
+              </div>
+              {profileSaveSuccess && (
+                <span className="text-green-400 text-xs font-medium flex items-center gap-1 animate-fade-in">
+                  <Check className="w-3 h-3" /> Profile Saved
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-5">
+              {profileError && (
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {profileError}
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Full Name</label>
+                  <input
+                    type="text"
+                    value={personalDetails.fullName}
+                    onChange={(e) => handlePersonalDetailChange('fullName', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="Consultant full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Role / Title</label>
+                  <input
+                    type="text"
+                    value={personalDetails.title}
+                    onChange={(e) => handlePersonalDetailChange('title', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="e.g. Chief Structural Consultant"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Mail className="w-3 h-3" /> Email
+                  </label>
+                  <input
+                    type="email"
+                    value={personalDetails.email}
+                    onChange={(e) => handlePersonalDetailChange('email', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="professional email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Phone className="w-3 h-3" /> Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={personalDetails.phone}
+                    onChange={(e) => handlePersonalDetailChange('phone', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="contact number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Building className="w-3 h-3" /> Organisation
+                  </label>
+                  <input
+                    type="text"
+                    value={personalDetails.organization}
+                    onChange={(e) => handlePersonalDetailChange('organization', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="company / consultancy"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <IdCard className="w-3 h-3" /> Registration ID
+                  </label>
+                  <input
+                    type="text"
+                    value={personalDetails.registrationId}
+                    onChange={(e) => handlePersonalDetailChange('registrationId', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="IS / PEC registration number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <MapPin className="w-3 h-3" /> Base Location
+                  </label>
+                  <input
+                    type="text"
+                    value={personalDetails.location}
+                    onChange={(e) => handlePersonalDetailChange('location', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="city, state"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Clock className="w-3 h-3" /> Experience Snapshot
+                  </label>
+                  <input
+                    type="text"
+                    value={personalDetails.experience}
+                    onChange={(e) => handlePersonalDetailChange('experience', e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
+                    placeholder="e.g. 14 years in seismic retrofit"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Expertise Summary</label>
+                <textarea
+                  value={personalDetails.expertise}
+                  onChange={(e) => handlePersonalDetailChange('expertise', e.target.value)}
+                  rows={4}
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-500 outline-none transition-all resize-none"
+                  placeholder="Key focus areas, notable achievements, certifications, etc."
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col md:flex-row gap-3 border-t border-slate-700 pt-4">
+              <button
+                onClick={handleSavePersonalDetails}
+                disabled={isSavingProfile}
+                className="flex-1 flex items-center justify-center gap-2 bg-orange-500/80 hover:bg-orange-500 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+              >
+                {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {isSavingProfile ? 'Saving Profile...' : 'Save Personal Details'}
+              </button>
+              <button
+                onClick={handleResetPersonalDetails}
+                className="flex-1 flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+              >
+                <Shield className="w-4 h-4" /> Reset to Default
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* Building Configuration Panel */}
-        <div className={`${onboardingMode ? 'lg:col-span-1' : 'lg:col-span-2'} bg-slate-800 rounded-xl border border-slate-700 shadow-lg p-6 flex flex-col`}>
+        <div className="bg-slate-800 rounded-xl border border-slate-700 shadow-lg p-6 flex flex-col">
           <div className="flex items-center justify-between mb-6 border-b border-slate-700 pb-4">
              <div className="flex items-center gap-2">
                 <Settings2 className="w-5 h-5 text-cyan-400" />
@@ -146,11 +373,17 @@ const Profile: React.FC<ProfileProps> = ({
              </div>
              {saveSuccess && (
                  <span className="text-green-400 text-xs font-medium flex items-center gap-1 animate-fade-in">
-                     <Check className="w-3 h-3" /> Saved Locally
+                    <Check className="w-3 h-3" /> Configuration Saved
                  </span>
              )}
           </div>
-          
+
+          {configError && (
+            <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {configError}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2">
                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Building Typology</label>
@@ -289,11 +522,11 @@ const Profile: React.FC<ProfileProps> = ({
           <div className="mt-auto flex flex-col md:flex-row gap-3 pt-4 border-t border-slate-700">
              <button 
                 onClick={handleSaveConfig}
-                disabled={isSaving}
+                disabled={isSavingConfig}
                 className="flex-1 flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
              >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {isSaving ? 'Saving...' : 'Save Configuration'}
+                {isSavingConfig ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {isSavingConfig ? 'Saving...' : 'Save Configuration'}
              </button>
              
              <button 
@@ -309,6 +542,12 @@ const Profile: React.FC<ProfileProps> = ({
                 {isAnalyzing ? 'Running Model...' : onboardingMode ? 'Initialize & Enter Dashboard' : 'Run Diagnostics'}
              </button>
           </div>
+
+          {analysisError && (
+            <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {analysisError}
+            </div>
+          )}
         </div>
 
         {/* Stats / Side Panel (Hidden in Onboarding) */}

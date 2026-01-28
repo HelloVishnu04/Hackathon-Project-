@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Layers, ShieldCheck, Activity, ChevronRight, Lock, Mail, User } from 'lucide-react';
 import BuildingViewer from './3d/BuildingViewer';
 import { BuildingParams } from '../types';
+import { supabase } from '../supabase/client';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -13,15 +14,52 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate auth delay
-    setTimeout(() => {
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      if (authMode === 'login') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          throw error;
+        }
+        onLogin();
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data.session) {
+          setInfoMessage('Account created! Check your email to confirm before logging in.');
+        } else {
+          onLogin();
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('Authentication failed. Please try again.');
+      }
+    } finally {
       setIsLoading(false);
-      onLogin();
-    }, 1500);
+    }
   };
 
   // Mock params for background visualization
@@ -104,6 +142,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <p className="text-slate-400 text-sm mb-6">
               {authMode === 'login' ? 'Access your structural dashboard' : 'Start your structural analysis journey'}
             </p>
+
+            {errorMessage && (
+              <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+                {errorMessage}
+              </div>
+            )}
+
+            {infoMessage && (
+              <div className="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
+                {infoMessage}
+              </div>
+            )}
 
             <form onSubmit={handleAuth} className="space-y-4">
               

@@ -9,15 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@supabase/supabase-js": "^2.93.2",
+    "jspdf": "2.5.1",
+    "lucide-react": "^0.563.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^6.28.0",
-    "@react-three/fiber": "^9.5.0",
-    "@react-three/drei": "^10.7.7",
-    "three": "^0.182.0",
-    "lucide-react": "^0.563.0",
     "recharts": "^3.7.0",
-    "jspdf": "2.5.1"
+    "three": "^0.182.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
@@ -28,4 +29,5 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
+
 }
