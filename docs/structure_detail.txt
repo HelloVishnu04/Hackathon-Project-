@@ -1,0 +1,191 @@
+S.A.F.E (Seismic Assessment & Forecast Engine)
+Friendly Project Map & File Guide
+=====================================================================
+
+ABOUT THIS DOCUMENT
+---------------------------------------------------------------------
+This note explains **what every file in the project does** using plain, everyday language. It also shows **how the pieces talk to each other** so you can trace the full flow from the browser to the backend service.
+
+1. Quick story of how the app loads
+2. Frontend files (React + TypeScript)
+3. Backend files (FastAPI + PyTorch)
+4. Supporting files and tools
+5. Relationship tree that ties everything together
+6. Handy reminders for working with the app
+
+
+1) HOW THE APP STARTS UP
+---------------------------------------------------------------------
+1. You open the site in a browser.
+2. `index.html` serves a bare page with a `<div id="root">` placeholder.
+3. `index.tsx` finds that `root` div and mounts the React app.
+4. `App.tsx` wraps everything in the shared state provider and sets up page routes like `/`, `/setup`, and `/app`.
+5. Depending on the current route, React shows one of the view components (Landing, Onboarding, or the main Application shell).
+6. Components such as Dashboard or Profile pull data from the global context and can call the backend through the analysis service.
+
+
+2) FRONTEND FILES (SRC ROOT)
+---------------------------------------------------------------------
+**App.tsx**
+- “Traffic controller” for the React side. Puts the app inside `AppStateProvider` so every component can read shared state.
+- Uses `BrowserRouter` from `react-router-dom` to map URL paths to the three main screens.
+- If someone types an unknown path, the wildcard route sends them back to `/`.
+
+**index.tsx**
+- The first TypeScript file that runs. Creates the React root and renders `<App />`.
+- Wrapped in `React.StrictMode` so React can warn about unsafe patterns during development.
+
+**index.html**
+- Plain HTML template that Vite serves. Sets the page title to “S.A.F.E | Seismic Assessment & Forecast Engine”.
+- Links the Tailwind CDN and Google Fonts so the React components have styling available.
+
+**Layout.tsx (root level)**
+- Legacy version of the layout that predates the refactor. Not part of current routing but kept for reference. The active layout component lives in `components/Layout.tsx`.
+
+**tsconfig.json, vite.config.ts, package.json, package-lock.json**
+- Tooling files. Together they describe how TypeScript should compile, how Vite should build, and which npm packages are installed.
+
+**README.md & docs/info.txt**
+- Human documentation. README is a quick overview; `docs/info.txt` is a deeper guide.
+
+
+3) VIEW LAYER (`/views`)
+---------------------------------------------------------------------
+**LandingView.tsx**
+- Shows the landing page when you visit `/`.
+- Uses `useNavigate` so clicking “Access Dashboard” moves you to `/setup`.
+- Only handles routing; the real layout sits in `components/LandingPage.tsx`.
+
+**OnboardingView.tsx**
+- Loads on `/setup`.
+- Wraps the layout in “onboarding mode” so the sidebar is hidden and the focus stays on filling in building details.
+- Watches the onboarding flag from the context. When `completeOnboarding()` is called, it sends users to `/app`.
+
+**ApplicationView.tsx**
+- Main interface at `/app`.
+- Grabs all state from `AppStateContext` (building data, retrofits, emergency mode, current tab, analysis results).
+- Splits the screen into a 3D viewer (left) and a panel that swaps between Dashboard, Profile, Reports, or Vulnerability Map depending on the active tab.
+- Redirects back to `/setup` if someone tries to access it before finishing onboarding.
+
+
+4) SHARED COMPONENTS (`/components`)
+---------------------------------------------------------------------
+**LandingPage.tsx**
+- Visual hero with S.A.F.E branding, key selling points, and a mock login/signup form.
+- Renders a live 3D building background using `BuildingViewer` to create an immersive first impression.
+
+**Layout.tsx**
+- Reusable sidebar + header shell for authenticated pages.
+- Accepts `currentView` and `setView`. Clicking sidebar buttons changes the active tab by calling `setView` from the context.
+- In onboarding mode it simplifies the sidebar while still showing the brand.
+
+**Dashboard.tsx**
+- The “command center” tab in the main app.
+- Generates live sensor data (vibration, stress, temperature). Adjusts health score automatically if seismic activity ramps up.
+- Runs structural analysis through `handleRunAnalysis` and coordinates the four dashboard sub-panels listed below.
+
+Dashboard sub-components (`/components/dashboard`)
+- **TopStatsRow.tsx** – Four quick cards: structural health percentage, seismic event toggle, sensor count, and emergency mode status.
+- **RetrofitAdvisorPanel.tsx** – Lists recommended retrofits from the analysis result, shows why they matter, and lets users “apply” them to see differences in the 3D viewer.
+- **SensorStrainPanel.tsx** – Real-time line chart (Recharts) showing vibration and stress trends. Highlights alerts in red when emergency mode is active.
+- **RoiChartPanel.tsx** – Bar chart that compares cost (ROI) against risk reduction for the suggested retrofits.
+
+**components/3d/BuildingViewer.tsx**
+- Builds the 3D scene with React Three Fiber.
+- Switches models based on the chosen typology (high-rise, stilt apartment, industrial shed, etc.).
+- Can render heat maps, evacuation paths, sensor pings, and a shaking animation during “seismic” mode.
+- Provides a callback so other components (like Reports) can export a snapshot image.
+
+**Profile.tsx**
+- Input forms for editing building details (typology, floors, materials, seismic zone, inspections).
+- Saves settings into `localStorage` using the new `safe_*` keys.
+- Offers “Save” and “Run Diagnostics” buttons. In onboarding mode it also advances the flow once diagnostics finish.
+
+**Reports.tsx**
+- Generates PDF reports with jsPDF. Includes building info, key charts, and optional 3D snapshots.
+- Shows loading state while the PDF is being produced so the UI doesn’t freeze.
+
+**VulnerabilityMap.tsx**
+- Displays weak points detected by the analysis. Combines text, lists, and charts to explain failure modes (e.g., open ground storey risk, shear failures).
+
+
+5) STATE, SERVICES, TYPES, AND HOOKS
+---------------------------------------------------------------------
+**state/AppStateContext.tsx**
+- Heart of the frontend state management.
+- Stores everything shared across screens: building parameters, active retrofit list, emergency toggle, analysis result, active view, snapshot function, onboarding completion.
+- Keeps values in `localStorage` so reloading the page doesn’t lose progress; also migrates old keys from the Structura naming.
+- Exposes `handleRunAnalysis` which either calls the backend or runs the local simulation.
+
+**services/analysisService.ts**
+- Fetch layer for the `/analyze` backend endpoint.
+- If the backend is offline, it runs a JavaScript version of the scoring logic so the app still responds.
+
+**services/geminiService.ts**
+- Placeholder for future AI integrations (currently just a stub).
+
+**hooks/useRequireOnboarding.ts**
+- Small helper hook that can redirect unauthenticated users back to `/setup`.
+- Not required after the view-level guard was added, but the hook remains for other pages if needed later.
+
+**types.ts**
+- Central list of TypeScript definitions for building data, retrofits, sensor samples, analysis results, and the `ViewMode` union used throughout the app.
+
+
+6) BACKEND FILES (`/backend`)
+---------------------------------------------------------------------
+**server.py**
+- FastAPI application that exposes two routes:
+  • `GET /` returns a simple “online” message.
+  • `POST /analyze` accepts building data, hands it to `StructuralAnalyzer`, and sends back the computed risk report.
+- Enables CORS for all origins so the React frontend can call it without issues during development.
+
+**model.py**
+- Contains the PyTorch neural network (`StructuralRiskNetwork`) plus the helper wrapper `StructuralAnalyzer`.
+- Encodes input features (year, floors, material type, typology flags, etc.), predicts a risk score, applies rule-based adjustments for Indian seismic codes, and returns recommended retrofits.
+
+**requirements.txt**
+- Dependency list for the backend (FastAPI, Uvicorn, Torch, NumPy, etc.). Run `pip install -r backend/requirements.txt` to set it up.
+
+
+7) OTHER FOLDERS
+---------------------------------------------------------------------
+**hackenv/**
+- Holds a local Python environment (e.g., Conda env). Contents are ignored by git so everyone can manage their own tools.
+
+**node_modules/**
+- Auto-generated directory created by npm. Stores all installed packages. Completely ignored by git.
+
+
+8) RELATION TREE (WHO TALKS TO WHOM?)
+---------------------------------------------------------------------
+index.html
+└── index.tsx (boots React)
+    └── App.tsx (sets routes + wraps in AppStateProvider)
+        └── AppStateContext.tsx (global state + helpers)
+            └── LandingView.tsx → LandingPage.tsx (marketing + login mock)
+            └── OnboardingView.tsx → Layout.tsx → Profile.tsx (setup form)
+            └── ApplicationView.tsx
+                ├── Layout.tsx (sidebar + header)
+                ├── BuildingViewer.tsx (3D scene)
+                ├── Dashboard.tsx
+                │   ├── TopStatsRow.tsx
+                │   ├── RetrofitAdvisorPanel.tsx → analysisService.ts → backend/server.py → backend/model.py
+                │   ├── SensorStrainPanel.tsx
+                │   └── RoiChartPanel.tsx
+                ├── Profile.tsx (settings)
+                ├── Reports.tsx (PDF export)
+                └── VulnerabilityMap.tsx (risk overview)
+
+hooks/useRequireOnboarding.ts (optional guard) → AppStateContext + react-router-dom navigation
+
+
+9) WORKING TIPS & REMINDERS
+---------------------------------------------------------------------
+- **Routing** lives only in App.tsx. Change paths there if new pages are added.
+- **Shared state** is managed in AppStateContext.tsx. Update this file when you need new global data or new persistence keys.
+- **3D & charts** rely on React Three Fiber and Recharts. If you add new visuals, look at BuildingViewer and the dashboard panels for patterns.
+- **Backend calls** happen through analysisService.ts. Keep all fetch logic there so you can swap endpoints or add headers in one place.
+- **Docs**: README.md is best for quick instructions, while this structure_detail file is the “map” of everything.
+
+End of structure_detail.txt

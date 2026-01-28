@@ -21,6 +21,7 @@ type AppStateContextValue = {
   hasCompletedOnboarding: boolean;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
+  signOut: () => void;
 };
 
 const DEFAULT_BUILDING_PARAMS: BuildingParams = {
@@ -92,6 +93,23 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setHasCompletedOnboarding(false);
   }, []);
 
+  const signOut = useCallback(() => {
+    setBuildingParams(() => ({ ...DEFAULT_BUILDING_PARAMS }));
+    setActiveRetrofits([]);
+    setEmergencyMode(false);
+    setAnalysis(null);
+    setCurrentView('dashboard');
+    setSnapshotGenerator(undefined);
+    setHasCompletedOnboarding(false);
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(BUILDING_PARAMS_KEY);
+      localStorage.removeItem(ONBOARDING_STATUS_KEY);
+      localStorage.removeItem(LEGACY_BUILDING_PARAMS_KEY);
+      localStorage.removeItem(LEGACY_ONBOARDING_STATUS_KEY);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(ONBOARDING_STATUS_KEY, hasCompletedOnboarding ? 'true' : 'false');
@@ -123,6 +141,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     hasCompletedOnboarding,
     completeOnboarding,
     resetOnboarding,
+    signOut,
   }), [
     buildingParams,
     activeRetrofits,
@@ -135,6 +154,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     hasCompletedOnboarding,
     completeOnboarding,
     resetOnboarding,
+    signOut,
   ]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

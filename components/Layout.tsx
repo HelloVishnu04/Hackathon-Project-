@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layers, ShieldAlert, Settings, Home, FileText, User, LogOut } from 'lucide-react';
 import { ViewMode } from '../types';
+import { useAppState } from '../state/AppStateContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +12,14 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboardingMode = false }) => {
+  const navigate = useNavigate();
+  const { signOut } = useAppState();
+
+  const handleSignOut = () => {
+    signOut();
+    navigate('/', { replace: true });
+  };
+
   return (
     <div className="flex h-screen w-full bg-slate-950 text-slate-100 overflow-hidden">
       {/* Sidebar - Hidden in Onboarding Mode */}
@@ -59,7 +69,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboard
                   <span className="text-sm font-medium text-green-400">Online</span>
                </div>
              </div>
-             <button onClick={() => window.location.reload()} className="mt-4 flex items-center gap-2 text-slate-500 hover:text-red-400 text-xs transition-colors">
+             <button onClick={handleSignOut} className="mt-4 flex items-center gap-2 text-slate-500 hover:text-red-400 text-xs transition-colors">
                <LogOut className="w-3 h-3" /> Sign Out
              </button>
           </div>
@@ -96,6 +106,15 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboard
              >
                <span className="text-xs font-bold">JD</span>
              </div>
+             {!onboardingMode && (
+               <button
+                 onClick={handleSignOut}
+                 className="hidden lg:flex items-center gap-2 text-xs text-slate-500 hover:text-red-400 transition-colors"
+               >
+                 <LogOut className="w-3 h-3" />
+                 <span>Sign Out</span>
+               </button>
+             )}
           </div>
         </header>
         <div className="flex-1 overflow-hidden relative">
