@@ -52,10 +52,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </div>
 
       {/* Content Layer */}
-      <div className="relative z-10 h-full flex flex-col md:flex-row">
+      <div className="relative z-10 h-full flex flex-col md:flex-row md:items-center md:gap-10 lg:gap-14 px-6 sm:px-10 md:px-12 lg:px-16">
         
         {/* Left: Info Section */}
-        <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-8 md:px-16 lg:px-24">
+        <div className="w-full md:flex-1 md:min-w-0 h-full flex flex-col justify-center">
           <div className="mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
@@ -96,7 +96,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </div>
 
         {/* Right: Auth Section */}
-        <div className="w-full md:w-1/2 h-full flex items-center justify-center p-6">
+        <div className="w-full md:w-[420px] lg:w-[460px] xl:w-[520px] md:shrink-0 h-full flex items-center justify-center py-10 md:py-0">
           <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-700 p-8 rounded-2xl shadow-2xl transition-all duration-300">
             <h2 className="text-2xl font-bold text-white mb-2">
               {authMode === 'login' ? 'Welcome Back' : 'Create Account'}

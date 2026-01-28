@@ -39,8 +39,8 @@ const ApplicationView: React.FC = () => {
 
   return (
     <Layout currentView={currentView} setView={setCurrentView}>
-      <div className="flex flex-col lg:flex-row h-full w-full">
-        <div className="h-1/2 lg:h-full lg:w-3/5 p-4 lg:pr-2">
+      <div className="flex flex-col xl:flex-row h-full w-full">
+        <div className="h-1/2 xl:h-full xl:flex-1 xl:min-w-0 p-4 xl:pr-2">
           <BuildingViewer
             params={buildingParams}
             activeRetrofits={activeRetrofits}
@@ -51,7 +51,7 @@ const ApplicationView: React.FC = () => {
           />
         </div>
 
-        <div className="h-1/2 lg:h-full lg:w-2/5 p-4 lg:pl-2 overflow-hidden">
+        <div className="h-1/2 xl:h-full xl:w-[520px] xl:min-w-[520px] xl:shrink-0 p-4 xl:pl-2 overflow-hidden">
           {currentView === 'dashboard' && (
             <Dashboard
               buildingParams={buildingParams}

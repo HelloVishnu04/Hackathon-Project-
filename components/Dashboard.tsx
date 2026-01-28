@@ -181,28 +181,21 @@ const Dashboard: React.FC<DashboardProps> = ({
       />
 
       {/* Main Content Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-grow">
-        
-        {/* Left Col: Analysis & Retrofits */}
-        <div className="flex flex-col gap-4">
-          <RetrofitAdvisorPanel
-            buildingParams={buildingParams}
-            analysis={analysis}
-            loading={loading}
-            handleRunAnalysis={handleRunAnalysis}
-            handleGenerateReport={handleGenerateReport}
-            setView={setView}
-            activeRetrofits={activeRetrofits}
-            toggleRetrofit={toggleRetrofit}
-            onRecalculate={() => setAnalysis(null as any)}
-          />
-        </div>
+      <div className="flex flex-col gap-4 flex-grow">
+        <RetrofitAdvisorPanel
+          buildingParams={buildingParams}
+          analysis={analysis}
+          loading={loading}
+          handleRunAnalysis={handleRunAnalysis}
+          handleGenerateReport={handleGenerateReport}
+          setView={setView}
+          activeRetrofits={activeRetrofits}
+          toggleRetrofit={toggleRetrofit}
+          onRecalculate={() => setAnalysis(null as any)}
+        />
 
-        {/* Right Col: Sensor Data & ROI */}
-        <div className="flex flex-col gap-4">
-          <SensorStrainPanel emergencyMode={emergencyMode} seismicStatus={seismicStatus} sensorData={sensorData} />
-          <RoiChartPanel analysis={analysis} />
-        </div>
+        <SensorStrainPanel emergencyMode={emergencyMode} seismicStatus={seismicStatus} sensorData={sensorData} />
+        <RoiChartPanel analysis={analysis} />
       </div>
     </div>
   );

@@ -24,17 +24,17 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboard
     <div className="flex h-screen w-full bg-slate-950 text-slate-100 overflow-hidden">
       {/* Sidebar - Hidden in Onboarding Mode */}
       {!onboardingMode && (
-        <aside className="w-20 lg:w-64 bg-slate-900 border-r border-slate-800 flex flex-col items-center lg:items-start py-6 transition-all duration-300 z-20">
-          <div className="px-0 lg:px-6 mb-8 flex items-center gap-3">
+        <aside className="w-16 sm:w-20 lg:w-20 2xl:w-64 bg-slate-900 border-r border-slate-800 flex flex-col items-center 2xl:items-start py-6 transition-all duration-300 z-20">
+          <div className="px-0 2xl:px-6 mb-8 flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
               <Layers className="text-white w-6 h-6" />
             </div>
-            <span className="hidden lg:block font-bold text-xl tracking-tight text-white">
+            <span className="hidden 2xl:block font-bold text-xl tracking-tight text-white">
               S.<span className="text-cyan-400">A.F.E</span>
             </span>
           </div>
 
-          <nav className="w-full flex-1 flex flex-col gap-2 px-3">
+          <nav className="w-full flex-1 flex flex-col gap-2 px-2 sm:px-3">
             <NavItem 
               icon={<Home />} 
               label="Overview" 
@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, onboard
             />
           </nav>
 
-          <div className="px-6 py-4 hidden lg:block w-full">
+          <div className="px-6 py-4 hidden 2xl:block w-full">
              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
                <p className="text-xs text-slate-400 mb-2">SYSTEM STATUS</p>
                <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => (
     disabled={!onClick}
   >
     {React.cloneElement(icon as React.ReactElement<any>, { size: 20 })}
-    <span className="hidden lg:block text-sm font-medium">{label}</span>
+    <span className="hidden 2xl:block text-sm font-medium">{label}</span>
   </button>
 );
 
