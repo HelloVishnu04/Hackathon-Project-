@@ -1,7 +1,7 @@
 -- Supabase schema for S.A.F.E
 
 -- Enable uuid generation
-create extension if not exists "pgcrypto";
+create extension if not exists "pgcrypto" with schema extensions;
 
 -- =========================
 -- User profile (1 row per user)
@@ -23,6 +23,9 @@ create table if not exists public.user_profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.user_profiles
+  add column if not exists onboarding_completed boolean not null default false;
 
 -- =========================
 -- Buildings (many per user)
@@ -73,7 +76,7 @@ create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   insert into public.user_profiles (user_id, email, onboarding_completed)
@@ -83,6 +86,8 @@ begin
   return new;
 end;
 $$;
+
+alter function public.handle_new_user() owner to postgres;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
