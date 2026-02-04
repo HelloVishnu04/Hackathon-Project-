@@ -1,0 +1,63 @@
+S.A.F.E Project Summary
+=======================
+
+Project Goal
+------------
+S.A.F.E (Seismic Assessment & Forecast Engine) is made to help people judge how safe a building is during an earthquake. It gives clear steps to measure the risk, see danger zones, and plan upgrades that reduce damage. The main aim is to turn raw building information into a simple score that anyone can understand, even if they are not an engineer. The tool also keeps track of changes over time, so teams can see if safety is improving after repairs.
+
+Problems This Project Can Solve
+-------------------------------
+- Helps owners and engineers quickly understand earthquake danger for any building, even if data is scattered across many sources.
+- Shows which parts of a building are weak so teams can fix them before a disaster, reducing last-minute emergency work.
+- Suggests practical retrofit ideas with cost hints, so repair budgets are easier to plan and justify to management.
+- Stores building profiles securely so teams can compare results over time and prove that safety investments are working.
+- Makes it easy to explain risk to city officials, safety officers, or residents using simple reports and clear pictures.
+- Supports emergency planning by giving a fast way to check which buildings need priority inspections after a quake.
+
+How the System Works (Short Version)
+------------------------------------
+1. **Frontend website** built with React and Vite lets users sign in, add their building details, upload photos or notes, and view results in dashboards and charts.
+2. **Backend service** built with FastAPI and PyTorch processes the building data, scores the risk, and prepares advice. It mixes a small neural network with simple rules so the answer stays realistic for Indian building standards.
+3. **Supabase database** keeps user accounts and building profiles safe and only visible to the right person. Every user gets their own records thanks to row-level security.
+4. **GitHub Pages and Actions** publish the site so it can run online without manual uploads, and the automated workflow pulls in Supabase keys during the build.
+5. **3D Viewer pipeline** turns backend results into heatmaps and markers that show where the structure is weak or needs upgrades.
+
+Main Features (All in Brief)
+----------------------------
+- Sign-up and login with Supabase, including password reset emails and session storage so users stay logged in across reloads.
+- Profile form to save building details like year, floors, materials, seismic zone, occupancy type, and special notes such as soft-storey or temple structures.
+- "Run Analysis" button to get a vulnerability score from 10 to 99, along with color coding (green, yellow, red) to make the number easy to read.
+- List of risky building areas, shown in both text panels and a 3D viewer. Users can rotate the model, zoom in on a floor, and turn overlays on or off.
+- Retrofit suggestions that list the fix, cost range, how much risk it reduces, and how long the work might take.
+- Emergency and maintenance views to plan drills, attach inspection checklists, and mark which upgrades are complete.
+- Easy-to-read summary report for sharing with stakeholders, including a short paragraph, critical zones, and recommended next steps.
+- Optional snapshot export so teams can copy the results into presentations or funding requests.
+
+Key Implementation Points
+-------------------------
+- React context keeps the app state and Supabase session in sync, and stores the current building form so users never lose their inputs.
+- Backend clamps scores to safe ranges and adds rule-based adjustments for Indian seismic codes, avoiding impossible outputs like negative risk.
+- GitHub workflow builds the site, injects Supabase secrets, and publishes to GitHub Pages automatically, with build logs that show if secrets are missing.
+- Asset paths and routing use hash navigation so the site works even on static hosting, and `index.html` references icons using relative paths to avoid 404 errors.
+- Supabase SQL scripts are idempotent, meaning they can run multiple times without breaking the database, which helps when fixing schema drift.
+- Services in the frontend merge Supabase data with local defaults so the UI still works if a field is missing in the database.
+
+Getting Started
+---------------
+1. Install Node packages: `npm install`
+2. Install Python packages: `pip install -r backend/requirements.txt`
+3. Set up environment files: copy `.env.example` (if present) to `.env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+4. Run the backend: `python backend/server.py` (default port 8000, change with `--port` if needed).
+5. Run the frontend: `npm run dev` (default Vite port 5173; open the link shown in the terminal).
+6. Open the site, sign up or log in, enter building data, and press "Run Analysis".
+7. Check the browser console or terminal logs if the score does not load; the messages explain which step failed.
+
+Future Growth Ideas
+-------------------
+- Automatic reading of building blueprints using OpenCV and TensorFlow, so the system can fill in columns and walls without manual typing.
+- 3D ghost meshes that show how retrofits would change the building, helping teams visualize the impact before construction begins.
+- ROI calculator, PDF report exporter, and a drag-and-drop pipeline editor to plan the order of inspections, repairs, and approvals.
+- Mobile-friendly mode that focuses on key warnings and lets inspectors check items during field visits.
+- Real-time IoT sensor feeds (accelerometers, strain gauges) that update the dashboard when shaking is detected.
+
+This summary gives a quick, friendly view of what the S.A.F.E project delivers, the problems it can solve, and the main features built so far.

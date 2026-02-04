@@ -11,6 +11,7 @@ import {
   upsertUserProfile,
 } from '../services/profileService';
 import { DEFAULT_PERSONAL_DETAILS, PersonalDetails } from '../types/profile';
+import { logStructureInput } from '../services/structureInputService';
 
 type SnapshotGenerator = (() => string) | undefined;
 
@@ -292,6 +293,17 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           name: options?.name,
         });
         setActiveBuildingId(record.id);
+
+        try {
+          await logStructureInput({
+            userId: user.id,
+            buildingId: record.id,
+            params,
+            metadata: options?.name ? { label: options.name } : null,
+          });
+        } catch (logError) {
+          console.warn('Failed to log structure input history:', logError);
+        }
       } catch (error) {
         console.error('Failed to persist building configuration:', error);
         throw error;

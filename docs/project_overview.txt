@@ -1,0 +1,68 @@
+S.A.F.E Project Overview (Plain Language)
+========================================
+
+What is S.A.F.E?
+----------------
+S.A.F.E stands for *Seismic Assessment & Forecast Engine*. It is a tool that helps people check how risky a building is during an earthquake and suggests ways to make it safer. The project has:
+
+- A website made with React where users enter building details and see results.
+- A small Python server that runs the risk rules.
+- Supabase to handle user accounts and save their building data.
+
+How the project is built
+------------------------
+1. **Frontend (React + Vite)**
+   - `App.tsx` controls the screens for onboarding, dashboard, reports, and the 3D view.
+   - `state/AppStateContext.tsx` keeps track of the logged-in user, their building info, and the analysis results.
+   - Files inside `components/` draw the dashboard, reports, and 3D viewer. The 3D viewer lets users rotate the building and see heatmaps or escape paths.
+   - `services/profileService.ts` talks to Supabase to load and save profile data. `services/analysisService.ts` calls the backend to get risk scores.
+   - `App.tsx` uses `HashRouter` and `vite.config.ts` sets the `base` path so the app works on GitHub Pages without 404 errors.
+
+2. **Backend (FastAPI + PyTorch)**
+   - `backend/server.py` starts a FastAPI server with an `/analyze` route that accepts building data from the frontend and returns the risk report.
+   - `backend/model.py` holds `StructuralAnalyzer`. It turns the input values into a tensor, runs a small neural network, applies simple rules for things like old buildings or high seismic zones, and produces:
+     - a vulnerability score (10–99),
+     - a list of risky parts of the building,
+     - and retrofit suggestions with cost and expected benefit.
+
+3. **Supabase setup**
+   - `supabase/schema.sql` creates the `user_profiles` and `buildings` tables, sets up row-level security, and makes sure a profile record is created when a new user signs up.
+   - `supabase/client.ts` connects the frontend to Supabase using Vite environment variables.
+   - The React context uses the Supabase client to sign in users, load their saved data, and update it.
+
+4. **Continuous deployment**
+   - `.github/workflows/deploy-pages.yml` builds the site and publishes it to GitHub Pages.
+   - Supabase secrets are stored in GitHub Secrets so the build can reach the database.
+
+Main features
+-------------
+- Users can create an account, fill in their building details, and save them for later.
+- The dashboard shows the risk score, warnings, and retrofit tips.
+- The 3D viewer highlights risky floors and shows possible escape paths.
+- Reports explain what problems were found and how to fix them.
+
+Important fixes that were made
+------------------------------
+- Added missing database columns and trigger owners so Supabase signup works.
+- Improved session handling so the app always shows the correct user data.
+- Switched to hash routing and fixed asset links so the GitHub Pages build works.
+- Documented how to set environment variables locally and in GitHub Actions.
+- Added guard rails in the analyzer so risk scores never go below 10 or above 99.
+
+How to run the project locally
+------------------------------
+1. Install Node packages with `npm install`.
+2. Install Python packages with `pip install -r backend/requirements.txt`.
+3. Start the backend: `python backend/server.py` (runs on http://127.0.0.1:8000).
+4. Start the frontend: `npm run dev` (runs on http://127.0.0.1:5173).
+5. Open the site, sign up or sign in, fill in building details, and press “Run Analysis”.
+
+Future ideas
+------------
+- Use OpenCV and TensorFlow to read blueprints and spot soft-story buildings automatically.
+- Draw ghost retrofit meshes directly in the 3D view.
+- Add ROI calculators, auto-generated PDF reports, and node-based workflow editors.
+
+Summary
+-------
+The S.A.F.E project helps users understand building risk in simple steps. It combines a React frontend, a FastAPI backend, and Supabase authentication to deliver clear scores, warnings, and retrofit advice.

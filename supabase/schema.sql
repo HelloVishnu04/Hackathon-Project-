@@ -45,6 +45,21 @@ create table if not exists public.buildings (
 create index if not exists buildings_user_id_idx on public.buildings (user_id);
 
 -- =========================
+-- Structure inputs history (captures each set of params saved/run)
+-- =========================
+create table if not exists public.structure_inputs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  building_id uuid references public.buildings (id) on delete set null,
+  input_params jsonb not null,
+  metadata jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists structure_inputs_user_id_idx on public.structure_inputs (user_id);
+create index if not exists structure_inputs_building_id_idx on public.structure_inputs (building_id);
+
+-- =========================
 -- updated_at triggers
 -- =========================
 create or replace function public.set_updated_at()
@@ -100,6 +115,7 @@ execute function public.handle_new_user();
 -- =========================
 alter table public.user_profiles enable row level security;
 alter table public.buildings enable row level security;
+alter table public.structure_inputs enable row level security;
 
 -- user_profiles policies
 
@@ -146,5 +162,25 @@ with check (auth.uid() = user_id);
 drop policy if exists "User can delete own buildings" on public.buildings;
 create policy "User can delete own buildings"
 on public.buildings
+for delete
+using (auth.uid() = user_id);
+
+-- structure_inputs policies
+
+drop policy if exists "User can read own structure inputs" on public.structure_inputs;
+create policy "User can read own structure inputs"
+on public.structure_inputs
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "User can insert own structure inputs" on public.structure_inputs;
+create policy "User can insert own structure inputs"
+on public.structure_inputs
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "User can delete own structure inputs" on public.structure_inputs;
+create policy "User can delete own structure inputs"
+on public.structure_inputs
 for delete
 using (auth.uid() = user_id);

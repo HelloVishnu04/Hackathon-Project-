@@ -1,0 +1,160 @@
+Structural Risk Analysis Model – Detailed Documentation
+=======================================================
+
+Overview
+--------
+`backend/model.py` implements a lightweight risk evaluation pipeline for
+structures located in the Indian seismic context. The file wraps a small
+PyTorch neural network in a higher level `StructuralAnalyzer` class. The
+analyzer combines learned risk scoring with hand-crafted heuristics and a
+recommendation engine that outputs actionable retrofit guidance.
+
+The module is designed for inference only (no training utilities are
+provided). It expects building metadata as a Python dictionary and returns
+a report containing:
+
+* `vulnerabilityScore`: an integer risk index (10–99)
+* `summary`: natural-language assessment text
+* `criticalZones`: list of vulnerable structural regions
+* `recommendations`: list of retrofit suggestions with cost / ROI metadata
+
+Core Components
+---------------
+
+### 1. StructuralRiskNetwork (PyTorch `nn.Module`)
+
+* **Purpose**: Provides a compact feedforward network that maps engineered
+  features to a scalar risk probability (0–1).
+* **Architecture**:
+  - Input layer: size 10 (scaled/encoded features)
+  - Hidden layer 1: Linear → ReLU, 24 neurons
+  - Hidden layer 2: Linear → ReLU, 24 neurons
+  - Output layer: Linear → Sigmoid, 1 neuron (risk probability)
+* **Forward pass**: sequentially applies the fully connected layers and
+  ReLU activations, ending with a sigmoid to ensure the output lies between
+  0 and 1. The caller typically multiplies this value by 100 to convert to a
+  percentage risk score.
+* **Training context**: The class is instantiated with default weights; the
+  file assumes weights are adequate (either randomly initialized or loaded
+  elsewhere). The network is placed in evaluation mode (`model.eval()`).
+
+### 2. StructuralAnalyzer
+
+Responsible for data preprocessing, invoking the neural network, applying
+rule-based adjustments, and generating structured recommendations.
+
+#### a. `encode_input(params)`
+
+* **Input**: `params` dictionary with keys such as `year`, `floors`,
+  `material`, `seismicZone`, `occupancy`, and `typology`.
+* **Feature engineering**:
+  1. **Year normalization**: Maps construction year to [0,1] assuming 
+     1950–2024 range.
+  2. **Floor normalization**: Floors/50, expecting ≤ 50 storeys.
+  3. **Material encoding**: Binary flags for concrete/stone and steel.
+  4. **Seismic zone intensity**: Maps IS 1893 zones (II–V) to numeric values.
+  5. **Occupancy**: Binary flag for commercial/industrial/religious usage.
+  6. **Typology one-hot encoding**: Flags for stilt apartments, houses,
+     high-rises, industrial sheds.
+* The engineered features are stored in a NumPy array of length 10, cast to
+  `float32`, then converted into a PyTorch tensor for the model.
+
+#### b. `predict(params)`
+
+* Calls `encode_input` and forwards the tensor through `StructuralRiskNetwork`.
+* The raw output probability is multiplied by 100 to obtain a risk score.
+* Applies domain-specific heuristics to adjust the score:
+  - Penalizes stilt parking structures in high seismic zones.
+  - Adjusts risk for industrial sheds, kutcha houses, temples, etc.
+  - Adds age-based penalties (pre-2002, pre-2016 code revisions).
+  - Adds seismic zone penalties (Zone IV/V).
+  - Penalizes tall masonry buildings.
+* Clamps the final score between 10 and 99 to avoid extremes.
+
+#### c. `get_recommendations(score, material, zone, typology)`
+
+* Builds a list of retrofit suggestions conditioned on typology, material,
+  seismic zone, and risk score. Each recommendation includes:
+  - `id`: unique string identifier
+  - `name`: retrofit technique
+  - `description`: summary of the intervention
+  - `costEstimate`: INR cost guidance
+  - `roi`: estimated return on investment (higher is better)
+  - `riskReduction`: expected percentage drop in risk
+  - `type`: retrofit category (bracing, jacketing, damping, etc.)
+* Typology-specific examples:
+  - Stilt apartments → ground floor bracing
+  - Industrial sheds → roof truss strengthening
+  - Kutcha houses → seismic bands
+  - Temples → stone pinning
+* High risk scores trigger additional material/zone-specific upgrades
+  (e.g., RC jacketing, ferrocement bandaging, shear walls, dampers).
+
+#### d. `generate_analysis(params)`
+
+* Primary entry point for consumers of the module.
+* Steps:
+  1. Compute risk score via `predict`.
+  2. Generate recommendation list via `get_recommendations`.
+  3. Derive `criticalZones` based on typology/material heuristics
+     (e.g., “Open Ground Storey”, “Non-Ductile Beam-Column Joints”).
+  4. Compose `summary` text describing risk severity and critical issues.
+  5. Assemble final response dictionary with `vulnerabilityScore`,
+     `summary`, `criticalZones`, and `recommendations`.
+
+Data Expectations
+-----------------
+* **Required keys**: `year`, `floors`, `material`, `seismicZone`,
+  `occupancy`, `typology`.
+* **Material values** directly influence one-hot encoding and heuristics.
+* **Seismic zone** should be one of `Zone II`, `Zone III`, `Zone IV`,
+  `Zone V`. Unknown zones default to `0.4` intensity.
+* **Typology** options include: `StiltApartment`, `IndustrialShed`,
+  `KutchaHouse`, `Temple`, `ModernHighRise`, `IndianApartment`,
+  `IndependentHouse`. The heuristics use these string matches, so inputs
+  should conform exactly or be mapped upstream.
+* All numeric inputs should be within the expected ranges (year ≥ 1950,
+  floors ≤ 50). Values outside these ranges produce extrapolated scores but
+  remain clamped at the end.
+
+Usage Example
+-------------
+```python
+from backend.model import StructuralAnalyzer
+
+analyzer = StructuralAnalyzer()
+params = {
+    "year": 1998,
+    "floors": 6,
+    "material": "Concrete",
+    "seismicZone": "Zone IV",
+    "occupancy": "Residential",
+    "typology": "StiltApartment"
+}
+result = analyzer.generate_analysis(params)
+print(result["vulnerabilityScore"])        # e.g., 78
+print(result["summary"])                   # textual assessment
+print(result["criticalZones"])             # list of structural hotspots
+print(result["recommendations"])           # retrofit suggestions
+```
+
+Extensibility Notes
+-------------------
+* **Model weights**: If a trained model exists, load state_dict into
+  `StructuralRiskNetwork` before switching to eval mode.
+* **Feature set**: Update `input_size`, feature ordering, and heuristics if
+  you add more inputs.
+* **Localization**: Heuristics are tuned for Indian codes (IS 1893, IS 15988).
+  To adapt to other regions, adjust penalty logic and recommendation catalog.
+* **Batching**: `predict` currently operates on single samples. For batch
+  inference, stack the encoded tensors and pass through the model once.
+
+Summary
+-------
+`backend/model.py` encapsulates a hybrid ML + rules engine that produces a
+context-aware vulnerability assessment for buildings. It engineers inputs,
+leverages a small neural net for baseline risk, applies domain heuristics,
+then emits retrofit advice aligned with Indian seismic regulations.
+Working with this module involves preparing a parameters dictionary,
+calling `generate_analysis`, and consuming the structured report for UI or
+further analytics.
